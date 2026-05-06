@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WPeople — Behavioral Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #000000;
+    --white: #FFFFFF;
+    --red: #FD3D3D;
+    --green: #DDFDC3;
+    --gray-100: #F5F5F5;
+    --gray-200: #E8E8E8;
+    --gray-400: #999999;
+    --gray-600: #666666;
+    --gray-700: #333333;
+    --flag-color: #FD3D3D;
+    --flag-bg: #fff5f5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
+    background: var(--white);
+    color: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--black);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-img { height: 32px; }
+  .header-meta { font-size: 8.5pt; color: var(--gray-400); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* PROGRESS */
+  #progress-bar-wrap { height: 3px; background: var(--gray-200); position: sticky; top: 61px; z-index: 99; }
+  #progress-bar { height: 100%; background: var(--red); width: 0%; transition: width 0.4s ease; }
+
+  /* SCREENS */
+  .screen { display: none; flex: 1; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; }
+
+  /* INTRO */
+  #intro { padding: 60px 40px; text-align: center; min-height: calc(100vh - 64px); justify-content: center; }
+  .intro-badge { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 20px; }
+  .intro-title { font-size: 40px; font-weight: 400; line-height: 1.1; max-width: 600px; margin-bottom: 16px; }
+  .intro-title strong { font-weight: 700; }
+  .intro-sub { font-size: 11pt; line-height: 1.65; color: var(--gray-700); max-width: 520px; margin-bottom: 36px; }
+  .intro-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); max-width: 520px; width: 100%; margin-bottom: 40px; }
+  .info-cell { background: var(--white); padding: 20px; text-align: center; }
+  .info-cell .num { font-size: 28px; font-weight: 700; display: block; margin-bottom: 4px; }
+  .info-cell .label { font-size: 8.5pt; color: var(--gray-400); letter-spacing: 0.08em; text-transform: uppercase; }
+  .intro-instructions { background: var(--gray-100); border-left: 3px solid var(--black); padding: 20px 24px; max-width: 520px; text-align: left; margin-bottom: 36px; font-size: 11pt; line-height: 1.65; color: var(--gray-700); }
+  .intro-instructions p { margin-bottom: 8px; }
+  .intro-instructions p:last-child { margin-bottom: 0; }
+  .name-input-wrap { max-width: 520px; width: 100%; margin-bottom: 32px; text-align: left; }
+  .name-input-wrap label { display: block; font-size: 8.5pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .name-input-wrap input { width: 100%; padding: 14px 16px; border: 1.5px solid var(--black); font-family: 'Open Sans', sans-serif; font-size: 11pt; outline: none; transition: border-color 0.2s; }
+  .name-input-wrap input:focus { border-color: var(--red); }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--black); color: var(--white); border: none; padding: 16px 48px; font-family: 'Open Sans', sans-serif; font-size: 11pt; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; transition: background 0.2s, transform 0.1s; }
+  .btn-primary:hover { background: var(--red); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary { background: transparent; color: var(--black); border: 1.5px solid var(--black); padding: 14px 36px; font-family: 'Open Sans', sans-serif; font-size: 11pt; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { background: var(--black); color: var(--white); }
+
+  /* ASSESSMENT */
+  #assessment { padding: 48px 40px 80px; min-height: calc(100vh - 64px); }
+  .q-counter { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 28px; align-self: flex-start; max-width: 700px; width: 100%; }
+  .q-counter span { color: var(--black); }
+  .q-instruction { font-size: 22pt; font-weight: 400; line-height: 1.3; margin-bottom: 6px; max-width: 700px; width: 100%; }
+  .q-sub { font-size: 10pt; color: var(--gray-400); margin-bottom: 28px; max-width: 700px; width: 100%; }
+  .legend { display: flex; gap: 24px; max-width: 700px; width: 100%; margin-bottom: 24px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 9pt; color: var(--gray-700); }
+  .legend-dot { width: 12px; height: 12px; flex-shrink: 0; }
+  .legend-dot.most { background: var(--black); }
+  .legend-dot.least { background: var(--red); }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 700px; width: 100%; margin-bottom: 36px; }
+  .option-card { border: 1.5px solid var(--gray-200); padding: 22px 18px; cursor: pointer; transition: all 0.15s; position: relative; user-select: none; }
+  .option-card:hover { border-color: var(--black); }
+  .option-card.selected-most { border-color: var(--black); background: var(--black); color: var(--white); }
+  .option-card.selected-least { border-color: var(--red); background: var(--red); color: var(--white); }
+  .option-word { font-size: 17px; font-weight: 700; margin-bottom: 5px; display: block; }
+  .option-desc { font-size: 9pt; line-height: 1.4; opacity: 0.65; }
+  .option-card.selected-most .option-desc, .option-card.selected-least .option-desc { opacity: 0.85; }
+  .option-tag { position: absolute; top: 9px; right: 11px; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0; transition: opacity 0.15s; }
+  .option-card.selected-most .option-tag, .option-card.selected-least .option-tag { opacity: 1; }
+  .q-nav { display: flex; gap: 12px; max-width: 700px; width: 100%; align-items: center; justify-content: space-between; }
+  .q-nav-left { display: flex; gap: 12px; }
+  .nav-hint { font-size: 8.5pt; color: var(--gray-400); letter-spacing: 0.05em; }
+
+  /* INCONSISTENCY BANNER */
+  .inconsistency-banner { max-width: 760px; width: 100%; background: #fff8e1; border-left: 4px solid #f0a500; padding: 20px 24px; margin-bottom: 28px; }
+  .inconsistency-banner h3 { font-size: 11pt; font-weight: 700; margin-bottom: 6px; color: #7a5000; }
+  .inconsistency-banner p { font-size: 10pt; line-height: 1.6; color: #5a3c00; }
+  .inconsistency-banner.hidden { display: none; }
+
+  /* RESULTS */
+  #results { padding: 56px 40px 80px; min-height: calc(100vh - 64px); }
+  .results-header { max-width: 760px; width: 100%; margin-bottom: 40px; }
+  .results-badge { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 12px; }
+  .results-name-title { font-size: 30pt; font-weight: 400; line-height: 1.2; margin-bottom: 4px; }
+  .results-name-title strong { font-weight: 700; }
+  .profile-type-label { font-size: 11pt; color: var(--gray-400); }
+
+  /* DUAL PROFILE BARS */
+  .score-section { max-width: 760px; width: 100%; margin-bottom: 36px; }
+  .score-section-title { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-200); }
+  .score-dual-header { display: grid; grid-template-columns: 28px 100px 1fr 52px 1fr 52px; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .score-dual-header span { font-size: 8pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400); }
+  .score-row { display: grid; grid-template-columns: 28px 100px 1fr 52px 1fr 52px; align-items: center; gap: 12px; margin-bottom: 14px; position: relative; }
+  .score-letter { font-size: 20px; font-weight: 700; text-align: center; }
+  .score-type-name { font-size: 10pt; font-weight: 700; }
+  .score-type-sub { font-size: 8pt; color: var(--gray-400); }
+  .score-bar-track { height: 8px; background: var(--gray-200); position: relative; overflow: hidden; }
+  .score-bar-fill-core { height: 100%; background: var(--black); width: 0%; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+  .score-bar-fill-adapted { height: 100%; background: var(--gray-400); width: 0%; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+  .score-value { font-size: 11pt; font-weight: 700; text-align: right; }
+
+  /* FLAG ROW */
+  .flag-row { display: none; max-width: 760px; width: 100%; background: var(--flag-bg); border-left: 3px solid var(--flag-color); padding: 10px 14px; margin-top: -8px; margin-bottom: 14px; font-size: 9pt; color: var(--flag-color); font-weight: 600; }
+  .flag-row.visible { display: block; }
+
+  /* PROFILE CARD */
+  .profile-cards-wrap { max-width: 760px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  .profile-card { background: var(--black); color: var(--white); padding: 32px 28px; }
+  .profile-card.adapted-card { background: var(--gray-700); }
+  .pc-label { font-size: 8pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 14px; }
+  .pc-type-big { font-size: 58px; font-weight: 700; line-height: 1; margin-bottom: 4px; letter-spacing: -2px; }
+  .pc-type-name { font-size: 16px; font-weight: 400; color: rgba(255,255,255,0.65); margin-bottom: 14px; }
+  .pc-tagline { font-size: 10pt; line-height: 1.6; color: rgba(255,255,255,0.82); }
+
+  /* PROFILE DETAIL */
+  .profile-detail { max-width: 760px; width: 100%; border: 1.5px solid var(--gray-200); padding: 32px; margin-bottom: 24px; }
+  .pd-title { font-size: 14pt; font-weight: 700; margin-bottom: 20px; }
+  .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .pd-section-label { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 12px; }
+  .pd-trait { font-size: 10pt; line-height: 1.5; color: var(--gray-700); padding-left: 12px; border-left: 2px solid var(--red); margin-bottom: 6px; }
+
+  /* BLEND */
+  .blend-section { max-width: 760px; width: 100%; padding: 24px 28px; border: 1.5px solid var(--gray-200); margin-bottom: 24px; }
+  .blend-title { font-size: 11pt; font-weight: 700; margin-bottom: 8px; }
+  .blend-body { font-size: 10pt; line-height: 1.65; color: var(--gray-700); }
+
+  /* ADAPTABILITY ALERT */
+  .adapt-alert { max-width: 760px; width: 100%; background: #fff5f5; border: 1.5px solid var(--red); padding: 20px 24px; margin-bottom: 24px; }
+  .adapt-alert.hidden { display: none; }
+  .adapt-alert h3 { font-size: 11pt; font-weight: 700; color: var(--red); margin-bottom: 8px; }
+  .adapt-alert p { font-size: 10pt; line-height: 1.6; color: var(--gray-700); }
+
+  .results-actions { max-width: 760px; width: 100%; display: flex; gap: 12px; flex-wrap: wrap; }
+  .disclaimer { max-width: 760px; width: 100%; margin-top: 36px; font-size: 8.5pt; color: var(--gray-400); line-height: 1.5; border-top: 1px solid var(--gray-200); padding-top: 20px; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px);} to { opacity:1; transform:translateY(0);} }
+  .anim { animation: fadeUp 0.35s ease forwards; }
+  .anim-delay-1 { animation-delay: 0.08s; opacity: 0; }
+  .anim-delay-2 { animation-delay: 0.16s; opacity: 0; }
+  .anim-delay-3 { animation-delay: 0.24s; opacity: 0; }
+
+  @media (max-width: 640px) {
+    header { padding: 12px 20px; }
+    #intro, #assessment, #results { padding: 32px 20px 60px; }
+    .options-grid { grid-template-columns: 1fr; }
+    .profile-cards-wrap { grid-template-columns: 1fr; }
+    .score-row, .score-dual-header { grid-template-columns: 28px 80px 1fr 44px 1fr 44px; gap: 8px; }
+    .pd-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img class="logo-img" src="data:image/png;base64,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oooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAQ0UGigAr7/r4Ar7/AKAPgClpKWgAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACinIjSOFQFmJwAO9e5+EPgX/anhGW61aR7e+uFDW6gf6sY7jvmgDwqit7xT4T1Twlqj2OpQMhBOyQD5ZB6g1g0AFFFFABRRRQAUUUUAFFFFABRRXoHww+Hdx421kSTK0emQMDNLj73+yD6n9KAN34P/DJ/Ed6ut6rEy6ZA2URh/rmH9B39a+nUjSJFjRQqKAABwAB0FQ2NjbabZRWdpEsVvEoVEUYAAqzQAUUUUAFeY/Fj4lQ+EdNfT7F1bVbhSAAf9UD1J9/Str4iePbTwRobTMyvfSgi3hzyT6n2H618i6tq13rWpz6hezNLPMxZmP8AKgCtcXM11cSTzu0kkjFmZjkknuahoooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiipI4JZcmOJ3A4JVScH8KAI6Kn+x3P/PvN/wB8H/Cj7Hc/8+83/fB/woAgoqf7Hc/8+83/AHwf8KDaXKgs1vKAOpKEAfpQBBRR/SigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAENFBooAK+/wCvgCvv+gD4ApaSloAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACjBPQUV6p8JPhpJ4p1FdT1CNk0uBgcEf609gPb1oA6D4M/C83ckXiPWYT5CkG2hcff8ARj7V9EAAAAAAAYAHYVHDBHbQpDEipGgCqoGAAOwqWgDC8T+FNM8WaW9jqUCuCDskA+ZD2INfKnj34cap4Ivm8xGmsGP7q4UcEeh9DX2RiqWp6XZ6vYyWV9Ak9vIMMjDP/wCo+9AHwfRXqXxQ+E9x4QaTVNPJm0lm5z96Ik8A+ory2gAooooAKKKKACiitfw54fvfEuuW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+bV9D0AFFFFAFXUv+QXd/wDXFv5GvhC6/wCPub/ro38zX3fqX/ILu/8Ari38jXwhdf8AH3N/10b+ZoAiooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigBDRQaKACvv+vgCvv+gD4ApaSloAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD3f9mn/kIeIf+uUP82r6Hr54/Zp/5CHiH/rlD/Nq+h6ACiiigCrqX/ILu/8Ari38jXwhdf8AH3N/10b+Zr7v1L/kF3f/AFxb+Rr4Quv+Pub/AK6N/M0ARUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAhooNFABX3/XwBX3/QB8AUtJS0AFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB7v+zT/AMhDxD/1yh/m1fQ9fNv7POqWOmX2utfXcNuHjiCmRgNxBbOM/hXvP/CWeH/+gzZf9/l/xoA2aKxv+Es8P/8AQZsv+/y/40f8JZ4f/wCgzZf9/l/xoAv6l/yC7v8A64t/I18IXX/H3N/10b+Zr7X1DxVoDadcqusWRJiYACZecgj1r4ouTm5lIPG9iD+NAEVFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAIaKDRQAV9/18AV9/0AfAFGaKKADNGa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" alt="WPeople">
+  <span class="header-meta">Behavioral Assessment &middot; V2.0</span>
+</header>
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<!-- ═══════════════════ INTRO ═══════════════════ -->
+<section class="screen active" id="intro">
+  <div class="intro-badge">Behavioral Profile Tool</div>
+  <h1 class="intro-title anim">Understand how you <strong>work,</strong><br>connect, and lead.</h1>
+  <p class="intro-sub anim anim-delay-1">This assessment maps your natural and adapted behavioral styles across four dimensions. There are no right or wrong answers — only honest ones.</p>
+  <div class="intro-info-grid anim anim-delay-1">
+    <div class="info-cell"><span class="num">24</span><span class="label">Questions</span></div>
+    <div class="info-cell"><span class="num">~5'</span><span class="label">Minutes</span></div>
+    <div class="info-cell"><span class="num">2</span><span class="label">Profiles</span></div>
+  </div>
+  <div class="intro-instructions anim anim-delay-2">
+    <p><strong>For each set of four words,</strong> select the one that describes you <strong>MOST</strong> and the one that describes you <strong>LEAST.</strong></p>
+    <p>Respond based on how you naturally behave at work — not how you think you should. Your first instinct is usually the most accurate.</p>
+    <p>You will receive two profiles: your <strong>Core</strong> (natural style) and your <strong>Adapted</strong> (how you adjust to your environment).</p>
+  </div>
+  <div class="name-input-wrap anim anim-delay-2">
+    <label for="respondent-name">Your name</label>
+    <input type="text" id="respondent-name" placeholder="First name (optional)" maxlength="60">
+  </div>
+  <button class="btn-primary anim anim-delay-3" onclick="startAssessment()">Begin Assessment &#8594;</button>
+</section>
+
+<!-- ═══════════════════ ASSESSMENT ═══════════════════ -->
+<section class="screen" id="assessment">
+  <div class="q-counter">Question <span id="q-num">1</span> of 24</div>
+  <div class="q-instruction">Select the word that describes you <strong>most</strong> and <strong>least.</strong></div>
+  <div class="q-sub">Click once for MOST &middot; Click again for LEAST &middot; Click a third time to deselect</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot most"></div> Most like me (Core style)</div>
+    <div class="legend-item"><div class="legend-dot least"></div> Least like me (Adapted signal)</div>
+  </div>
+  <div class="options-grid" id="options-grid"></div>
+  <div class="q-nav">
+    <div class="q-nav-left">
+      <button class="btn-secondary" id="btn-prev" onclick="prevQuestion()">&#8592; Back</button>
+      <button class="btn-primary" id="btn-next" onclick="nextQuestion()">Next &#8594;</button>
+    </div>
+    <span class="nav-hint" id="nav-hint"></span>
+  </div>
+</section>
+
+<!-- ═══════════════════ RESULTS ═══════════════════ -->
+<section class="screen" id="results">
+  <div class="results-header">
+    <div class="results-badge">Assessment Complete</div>
+    <h2 class="results-name-title" id="results-name">Your <strong>Behavioral Profile</strong></h2>
+    <p class="profile-type-label" id="results-subtitle"></p>
+  </div>
+
+  <!-- Inconsistency Warning -->
+  <div class="inconsistency-banner hidden" id="inconsistency-banner">
+    <h3>&#9888; Consistency Alert</h3>
+    <p id="inconsistency-text"></p>
+  </div>
+
+  <!-- Adaptability Alert -->
+  <div class="adapt-alert hidden" id="adapt-alert">
+    <h3>&#9888; Significant Style Shift Detected</h3>
+    <p id="adapt-alert-text"></p>
+  </div>
+
+  <!-- Dual Score Bars -->
+  <div class="score-section">
+    <div class="score-section-title">Dimension Scores — Percentage of Selections</div>
+    <div class="score-dual-header">
+      <span></span><span></span>
+      <span>Core (Most %)</span><span></span>
+      <span>Adapted (Least %)</span><span></span>
+    </div>
+    <div id="score-bars"></div>
+  </div>
+
+  <!-- Primary Profile Cards -->
+  <div class="profile-cards-wrap" id="profile-cards"></div>
+
+  <!-- Detail -->
+  <div class="profile-detail" id="profile-detail"></div>
+
+  <!-- Blend -->
+  <div class="blend-section" id="blend-section"></div>
+
+  <div class="results-actions">
+    <button class="btn-primary" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-secondary" onclick="restartAssessment()">Retake Assessment</button>
+  </div>
+  <p class="disclaimer">This assessment is an indicative behavioral preference tool based on the DISC model, adapted for WPeople's advisory and recruiting practice. It is not a certified psychometric instrument and should be used as a structured conversation starter, not a definitive classification. Results should be interpreted by a qualified practitioner. Core style reflects natural behavioral tendencies; Adapted style reflects perceived environmental demands.</p>
+</section>
+
+<script>
+const questions = [
+  [{word:"Decisive",desc:"Makes quick, clear decisions",type:"D"},{word:"Enthusiastic",desc:"Brings energy and excitement",type:"I"},{word:"Patient",desc:"Calm and steady under pressure",type:"S"},{word:"Accurate",desc:"Careful, precise and detail-oriented",type:"C"}],
+  [{word:"Direct",desc:"Communicates bluntly and efficiently",type:"D"},{word:"Optimistic",desc:"Sees the upside in most situations",type:"I"},{word:"Consistent",desc:"Reliable and predictable in behavior",type:"S"},{word:"Analytical",desc:"Breaks problems down systematically",type:"C"}],
+  [{word:"Bold",desc:"Takes on challenges without hesitation",type:"D"},{word:"Sociable",desc:"Connects easily with others",type:"I"},{word:"Calm",desc:"Remains composed in difficult moments",type:"S"},{word:"Precise",desc:"Focused on correctness and quality",type:"C"}],
+  [{word:"Competitive",desc:"Drives hard to win and outperform",type:"D"},{word:"Persuasive",desc:"Influences others through ideas",type:"I"},{word:"Loyal",desc:"Committed to the team long-term",type:"S"},{word:"Systematic",desc:"Follows processes and structures",type:"C"}],
+  [{word:"Results-driven",desc:"Focused on outcomes above all",type:"D"},{word:"Inspiring",desc:"Motivates people around a vision",type:"I"},{word:"Dependable",desc:"Others can count on you consistently",type:"S"},{word:"Thorough",desc:"Leaves nothing important overlooked",type:"C"}],
+  [{word:"Assertive",desc:"Speaks up and holds positions firmly",type:"D"},{word:"Outgoing",desc:"Open and warm in social settings",type:"I"},{word:"Cooperative",desc:"Works well within a group dynamic",type:"S"},{word:"Methodical",desc:"Approaches tasks step by step",type:"C"}],
+  [{word:"Independent",desc:"Prefers to work autonomously",type:"D"},{word:"Expressive",desc:"Shares ideas and feelings freely",type:"I"},{word:"Steady",desc:"Maintains a stable, even pace",type:"S"},{word:"Disciplined",desc:"Adheres to standards and rules",type:"C"}],
+  [{word:"Determined",desc:"Sees things through to completion",type:"D"},{word:"Animated",desc:"Expressive and lively in interactions",type:"I"},{word:"Amiable",desc:"Easy-going and pleasant to work with",type:"S"},{word:"Orderly",desc:"Keeps things organized and structured",type:"C"}],
+  [{word:"Adventurous",desc:"Embraces change and the unknown",type:"D"},{word:"Charming",desc:"Wins people over naturally",type:"I"},{word:"Considerate",desc:"Mindful of others' feelings",type:"S"},{word:"Perfectionistic",desc:"Sets high standards for quality",type:"C"}],
+  [{word:"Forceful",desc:"Pushes through resistance decisively",type:"D"},{word:"Trusting",desc:"Gives others the benefit of the doubt",type:"I"},{word:"Even-tempered",desc:"Rarely shows extremes of emotion",type:"S"},{word:"Logical",desc:"Makes decisions based on facts and data",type:"C"}],
+  [{word:"Driven",desc:"Strong inner push to achieve goals",type:"D"},{word:"Spontaneous",desc:"Enjoys improvising and going off-script",type:"I"},{word:"Reliable",desc:"Delivers on commitments dependably",type:"S"},{word:"Detail-focused",desc:"Attentive to specifics and nuance",type:"C"}],
+  [{word:"Strong-willed",desc:"Sticks to positions under pressure",type:"D"},{word:"Energetic",desc:"Brings high energy to every situation",type:"I"},{word:"Modest",desc:"Understated and unpretentious",type:"S"},{word:"Fact-based",desc:"Relies on evidence, not opinion",type:"C"}],
+  [{word:"Pioneering",desc:"Leads new directions and initiatives",type:"D"},{word:"Popular",desc:"Naturally attracts others' attention",type:"I"},{word:"Peaceful",desc:"Avoids conflict, fosters harmony",type:"S"},{word:"Quality-focused",desc:"Won't compromise on standards",type:"C"}],
+  [{word:"Challenging",desc:"Questions the status quo directly",type:"D"},{word:"Playful",desc:"Uses humor to connect and engage",type:"I"},{word:"Accommodating",desc:"Adapts to others' needs",type:"S"},{word:"Reserved",desc:"Measured and careful in expression",type:"C"}],
+  [{word:"Risk-taking",desc:"Comfortable acting with uncertainty",type:"D"},{word:"Talkative",desc:"Communicates actively and frequently",type:"I"},{word:"Harmonious",desc:"Creates balance within a group",type:"S"},{word:"Careful",desc:"Thinks before acting to avoid errors",type:"C"}],
+  [{word:"Authoritative",desc:"Commands respect through confidence",type:"D"},{word:"Magnetic",desc:"Draws people in and holds attention",type:"I"},{word:"Nurturing",desc:"Supports others' growth and wellbeing",type:"S"},{word:"Rigorous",desc:"Demands high accuracy and proof",type:"C"}],
+  [{word:"Confident",desc:"Self-assured in decisions and actions",type:"D"},{word:"Enthusiastic",desc:"Brings infectious positivity",type:"I"},{word:"Humble",desc:"Puts the team ahead of self",type:"S"},{word:"Diligent",desc:"Works carefully and persistently",type:"C"}],
+  [{word:"Action-oriented",desc:"Prefers doing over deliberating",type:"D"},{word:"Fun-loving",desc:"Brings lightness and enjoyment to work",type:"I"},{word:"Supportive",desc:"Stands behind others consistently",type:"S"},{word:"Investigative",desc:"Digs deep to understand root causes",type:"C"}],
+  [{word:"Goal-focused",desc:"Keeps attention on targets and results",type:"D"},{word:"Creative",desc:"Generates new ideas easily",type:"I"},{word:"Team-player",desc:"Prioritizes collaboration over solo wins",type:"S"},{word:"Precise",desc:"Values exactness in all outputs",type:"C"}],
+  [{word:"Demanding",desc:"Holds high expectations of others",type:"D"},{word:"Open",desc:"Welcomes input and new ideas",type:"I"},{word:"Balanced",desc:"Sees all sides and mediates well",type:"S"},{word:"Reflective",desc:"Thinks carefully before responding",type:"C"}],
+  [{word:"Fast-paced",desc:"Moves quickly and dislikes delays",type:"D"},{word:"Warm",desc:"Creates an immediate sense of ease",type:"I"},{word:"Stable",desc:"Grounded and unaffected by turbulence",type:"S"},{word:"Structured",desc:"Prefers clear frameworks and plans",type:"C"}],
+  [{word:"Pragmatic",desc:"Focuses on what works, not theory",type:"D"},{word:"Communicative",desc:"Shares openly and proactively",type:"I"},{word:"Empathetic",desc:"Deeply attuned to others' emotions",type:"S"},{word:"Objective",desc:"Keeps personal bias out of decisions",type:"C"}],
+  [{word:"Urgent",desc:"Creates momentum and drives urgency",type:"D"},{word:"Vivacious",desc:"Full of life and enthusiasm",type:"I"},{word:"Sincere",desc:"Authentic and genuine in interactions",type:"S"},{word:"Conscientious",desc:"Guided by principles and duty",type:"C"}],
+  [{word:"Powerful",desc:"Projects authority and strength",type:"D"},{word:"Collaborative",desc:"Energizes teams through connection",type:"I"},{word:"Consistent",desc:"Predictable and reliable over time",type:"S"},{word:"Meticulous",desc:"Uncompromising on quality and detail",type:"C"}]
+];
+
+const profiles = {
+  D:{name:"Dominant",tagline:"Results-focused, direct, and driven by challenges. You set high standards, make decisions quickly, and move others toward goals with confidence and urgency.",strengths:["Gets results fast and decisively","Takes initiative under pressure","Comfortable with authority and accountability","Cuts through ambiguity to act"],growth:["May overlook people's feelings in pursuit of results","Can come across as blunt or impatient","Benefits from slowing down to actively listen"]},
+  I:{name:"Influential",tagline:"Energetic, expressive, and naturally persuasive. You inspire others, build relationships quickly, and thrive in collaborative, high-energy environments.",strengths:["Exceptional communicator and storyteller","Builds rapport and trust instantly","Motivates and energizes teams around ideas","Creative and generative under pressure"],growth:["Can struggle with follow-through on detail","May avoid difficult or critical conversations","Benefits from more structure and accountability"]},
+  S:{name:"Steady",tagline:"Calm, reliable, and deeply committed to others. You build lasting trust, foster team harmony, and deliver consistently — without needing the spotlight.",strengths:["Trusted and dependable over the long term","Excellent active listener and mediator","Keeps teams cohesive during turbulence","Deep, loyal relationship builder"],growth:["May resist necessary or rapid change","Can have difficulty asserting boundaries or saying no","Benefits from voicing views more directly and early"]},
+  C:{name:"Conscientious",tagline:"Analytical, systematic, and driven by quality. You solve problems with rigor, set high standards, and ensure every decision is grounded in data and evidence.",strengths:["Exceptional analytical and critical thinking","Produces consistently high-quality work","Identifies risks and blind spots others miss","Organized, thorough, and process-oriented"],growth:["Can get stuck in analysis paralysis","May appear emotionally detached or overly critical","Benefits from making decisions with less-than-perfect data"]}
+};
+
+// STATE
+let current = 0;
+let answers = Array(24).fill(null).map(() => ({most:null,least:null}));
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startAssessment() {
+  current = 0;
+  answers = Array(24).fill(null).map(() => ({most:null,least:null}));
+  showScreen('assessment');
+  renderQuestion();
+  updateProgress();
+}
+
+function restartAssessment() {
+  showScreen('intro');
+  document.getElementById('progress-bar').style.width = '0%';
+}
+
+function renderQuestion() {
+  document.getElementById('q-num').textContent = current + 1;
+  const prev = document.getElementById('btn-prev');
+  prev.style.opacity = current === 0 ? '0.3' : '1';
+  prev.disabled = current === 0;
+  document.getElementById('btn-next').textContent = current === 23 ? 'View Results →' : 'Next →';
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const ans = answers[current];
+
+  questions[current].forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    if (ans.most === idx) card.classList.add('selected-most');
+    if (ans.least === idx) card.classList.add('selected-least');
+    const tag = ans.most === idx ? 'MOST' : (ans.least === idx ? 'LEAST' : '');
+    card.innerHTML = `<span class="option-tag">${tag}</span><span class="option-word">${opt.word}</span><span class="option-desc">${opt.desc}</span>`;
+    card.addEventListener('click', () => handleSelect(idx));
+    grid.appendChild(card);
+  });
+  updateNavHint();
+}
+
+function handleSelect(idx) {
+  const ans = answers[current];
+  if (ans.most === idx) { ans.most = null; }
+  else if (ans.least === idx) { ans.least = null; }
+  else if (ans.most === null) { ans.most = idx; }
+  else if (ans.least === null) { ans.least = idx; }
+  else { ans.most = idx; if (ans.least === idx) ans.least = null; }
+  renderQuestion();
+}
+
+function updateNavHint() {
+  const ans = answers[current];
+  const hint = document.getElementById('nav-hint');
+  if (!ans.most && ans.most !== 0) hint.textContent = 'Select MOST first';
+  else if (ans.least === null) hint.textContent = 'Now select LEAST';
+  else hint.textContent = '✓ Ready to continue';
+}
+
+function nextQuestion() {
+  const ans = answers[current];
+  if (ans.most === null || ans.least === null) { alert('Please select both MOST and LEAST before continuing.'); return; }
+  if (current < 23) { current++; renderQuestion(); updateProgress(); }
+  else { showResults(); }
+}
+
+function prevQuestion() {
+  if (current > 0) { current--; renderQuestion(); updateProgress(); }
+}
+
+function updateProgress() {
+  document.getElementById('progress-bar').style.width = (current / 24 * 100) + '%';
+}
+
+// ── SCORING ──────────────────────────────────────────────────
+function computeScores() {
+  // Core = Most counts; Adapted = Least counts
+  const core = {D:0,I:0,S:0,C:0};
+  const adapted = {D:0,I:0,S:0,C:0};
+  answers.forEach((ans, qi) => {
+    if (ans.most !== null) core[questions[qi][ans.most].type]++;
+    if (ans.least !== null) adapted[questions[qi][ans.least].type]++;
+  });
+  // Convert to percentages (out of 24 selections each)
+  const coreP = {}, adaptedP = {};
+  ['D','I','S','C'].forEach(t => {
+    coreP[t] = Math.round(core[t] / 24 * 100);
+    adaptedP[t] = Math.round(adapted[t] / 24 * 100);
+  });
+  return {core, adapted, coreP, adaptedP};
+}
+
+function checkConsistency(answers) {
+  // Flag if any dimension appears as both Most AND Least at high rates
+  const bothCount = {D:0,I:0,S:0,C:0};
+  answers.forEach((ans, qi) => {
+    if (ans.most !== null && ans.least !== null) {
+      const mType = questions[qi][ans.most].type;
+      const lType = questions[qi][ans.least].type;
+      if (mType === lType) bothCount[mType]++; // same type selected most and least in different Qs
+    }
+  });
+  // Also check: same type high in both core and adapted raw counts
+  const core = {D:0,I:0,S:0,C:0};
+  const adapted = {D:0,I:0,S:0,C:0};
+  answers.forEach((ans, qi) => {
+    if (ans.most !== null) core[questions[qi][ans.most].type]++;
+    if (ans.least !== null) adapted[questions[qi][ans.least].type]++;
+  });
+  const flagged = [];
+  ['D','I','S','C'].forEach(t => {
+    const cP = core[t]/24*100;
+    const aP = adapted[t]/24*100;
+    // If a dimension scores >20% in both Most and Least = contradictory
+    if (cP >= 20 && aP >= 20) flagged.push(`${t} (${profiles[t].name})`);
+  });
+  return flagged;
+}
+
+function checkAdaptationFlags(coreP, adaptedP) {
+  const flags = [];
+  ['D','I','S','C'].forEach(t => {
+    const diff = Math.abs(coreP[t] - adaptedP[t]);
+    if (diff > 20) flags.push({type:t, corePct:coreP[t], adaptedPct:adaptedP[t], diff});
+  });
+  return flags;
+}
+
+// ── RESULTS ───────────────────────────────────────────────────
+function showResults() {
+  const {core, adapted, coreP, adaptedP} = computeScores();
+  const dims = ['D','I','S','C'];
+
+  // Sort by Core for primary/secondary
+  const coreSorted = dims.slice().sort((a,b) => core[b]-core[a]);
+  const primaryCore = coreSorted[0];
+  const secondaryCore = coreSorted[1];
+
+  // Adapted primary
+  const adaptedSorted = dims.slice().sort((a,b) => adapted[b]-adapted[a]);
+  const primaryAdapted = adaptedSorted[0];
+
+  // Name
+  const name = document.getElementById('respondent-name').value.trim();
+  document.getElementById('results-name').innerHTML = name
+    ? `${name}'s <strong>Behavioral Profile</strong>`
+    : 'Your <strong>Behavioral Profile</strong>';
+  document.getElementById('results-subtitle').textContent =
+    `Core: ${primaryCore} — ${profiles[primaryCore].name} · Adapted: ${primaryAdapted} — ${profiles[primaryAdapted].name}`;
+
+  // Consistency check
+  const inconsistentDims = checkConsistency(answers);
+  const incBanner = document.getElementById('inconsistency-banner');
+  if (inconsistentDims.length > 0) {
+    incBanner.classList.remove('hidden');
+    document.getElementById('inconsistency-text').textContent =
+      `The dimension(s) ${inconsistentDims.join(', ')} appear frequently in both Most and Least selections, which creates contradictory signals. This may indicate ambivalence, context-switching, or distraction during the assessment. We recommend retaking the assessment in a quiet setting, responding instinctively without overthinking each choice.`;
+  } else {
+    incBanner.classList.add('hidden');
+  }
+
+  // Adaptation flags (>20% variance)
+  const adaptFlags = checkAdaptationFlags(coreP, adaptedP);
+  const adaptAlert = document.getElementById('adapt-alert');
+  if (adaptFlags.length > 0) {
+    adaptAlert.classList.remove('hidden');
+    const flagText = adaptFlags.map(f =>
+      `<strong>${f.type} — ${profiles[f.type].name}:</strong> Core ${f.corePct}% vs. Adapted ${f.adaptedPct}% (${f.diff} pts variance)`
+    ).join('; ');
+    document.getElementById('adapt-alert-text').innerHTML =
+      `Significant variance (>20%) detected in the following dimension(s): ${flagText}. A gap of this size typically indicates that you are substantially modifying your natural behavior to meet perceived environmental expectations. This can be a source of sustained stress or disengagement over time. This finding warrants a deeper conversation with a practitioner.`;
+  } else {
+    adaptAlert.classList.add('hidden');
+  }
+
+  // Score bars (Core + Adapted)
+  const maxCore = Math.max(...dims.map(t => core[t]));
+  const barsHTML = dims.map(t => {
+    const isPrimary = t === primaryCore;
+    const diff = Math.abs(coreP[t] - adaptedP[t]);
+    const flagVisible = diff > 20 ? 'visible' : '';
+    return `
+      <div class="score-row">
+        <div class="score-letter" style="${isPrimary ? 'color:var(--red)':''}">${t}</div>
+        <div><div class="score-type-name">${profiles[t].name}</div></div>
+        <div class="score-bar-track"><div class="score-bar-fill-core" id="bar-core-${t}" style="width:0%"></div></div>
+        <div class="score-value">${coreP[t]}%</div>
+        <div class="score-bar-track"><div class="score-bar-fill-adapted" id="bar-adapted-${t}" style="width:0%"></div></div>
+        <div class="score-value" style="color:var(--gray-400)">${adaptedP[t]}%</div>
+      </div>
+      <div class="flag-row ${flagVisible}">⚠ ${diff}% variance between Core and Adapted — review recommended</div>
+    `;
+  }).join('');
+  document.getElementById('score-bars').innerHTML = barsHTML;
+
+  setTimeout(() => {
+    dims.forEach(t => {
+      const el = document.getElementById('bar-core-'+t);
+      const el2 = document.getElementById('bar-adapted-'+t);
+      if(el) el.style.width = coreP[t]+'%';
+      if(el2) el2.style.width = adaptedP[t]+'%';
+    });
+  }, 100);
+
+  // Profile cards
+  const cardsHTML = `
+    <div class="profile-card">
+      <div class="pc-label">Core Style &mdash; Natural Behavior</div>
+      <div class="pc-type-big">${primaryCore}</div>
+      <div class="pc-type-name">${profiles[primaryCore].name}</div>
+      <p class="pc-tagline">${profiles[primaryCore].tagline}</p>
+    </div>
+    <div class="profile-card adapted-card">
+      <div class="pc-label">Adapted Style &mdash; Perceived Demand</div>
+      <div class="pc-type-big">${primaryAdapted}</div>
+      <div class="pc-type-name">${profiles[primaryAdapted].name}</div>
+      <p class="pc-tagline">In your current environment, you appear to be adjusting toward ${profiles[primaryAdapted].name.toLowerCase()} behaviors — ${adaptedInterpretation(primaryCore, primaryAdapted)}.</p>
+    </div>
+  `;
+  document.getElementById('profile-cards').innerHTML = cardsHTML;
+
+  // Detail section
+  const p = profiles[primaryCore];
+  const sp = profiles[secondaryCore];
+  document.getElementById('profile-detail').innerHTML = `
+    <div class="pd-title">Core Profile Detail &mdash; ${primaryCore}/${secondaryCore}: ${p.name} with ${sp.name} tendencies</div>
+    <div class="pd-grid">
+      <div>
+        <div class="pd-section-label">Key Strengths</div>
+        ${p.strengths.map(s=>`<div class="pd-trait">${s}</div>`).join('')}
+      </div>
+      <div>
+        <div class="pd-section-label">Areas for Growth</div>
+        ${p.growth.map(s=>`<div class="pd-trait">${s}</div>`).join('')}
+        <div class="pd-section-label" style="margin-top:18px">Secondary Dimension — ${secondaryCore}</div>
+        ${sp.strengths.slice(0,2).map(s=>`<div class="pd-trait">${s}</div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  // Blend
+  document.getElementById('blend-section').innerHTML = `
+    <div class="blend-title">How Core and Adapted interact</div>
+    <p class="blend-body">${blendInterpretation(primaryCore, primaryAdapted, coreP, adaptedP)}</p>
+  `;
+
+  document.getElementById('progress-bar').style.width = '100%';
+  showScreen('results');
+}
+
+function adaptedInterpretation(core, adapted) {
+  if (core === adapted) return "which aligns with your natural style — low adaptation pressure detected";
+  const map = {
+    D: "asserting more control, moving faster, and taking charge",
+    I: "being more collaborative, expressive, and people-focused",
+    S: "slowing down, accommodating others, and maintaining harmony",
+    C: "being more careful, process-oriented, and detail-driven"
+  };
+  return map[adapted] || "behavioral adjustment";
+}
+
+function blendInterpretation(core, adapted, coreP, adaptedP) {
+  if (core === adapted) {
+    return `Your Core and Adapted profiles are aligned — both pointing to ${profiles[core].name} as the dominant style. This suggests you are operating in an environment that matches or reinforces your natural tendencies, which typically correlates with lower stress and higher engagement.`;
+  }
+  const diff = Math.abs(coreP[core] - adaptedP[core]);
+  const tension = diff > 20 ? "significant" : "moderate";
+  return `Your natural style is ${profiles[core].name} (${core}), but your adapted style shifts toward ${profiles[adapted].name} (${adapted}). This ${tension} shift suggests your environment is pulling you away from your instinctive behaviors. Understanding whether this adaptation is intentional (leadership development) or involuntary (environmental pressure) is a valuable conversation for any practitioner or manager working with you.`;
+}
+</script>
+</body>
+</html>
